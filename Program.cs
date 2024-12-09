@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using SPJ_ProyectoMVC.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -21,5 +23,7 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+//app.MapCatalogoEndpoints();
 
 app.Run();

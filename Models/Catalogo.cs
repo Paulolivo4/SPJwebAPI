@@ -1,6 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.EntityFrameworkCore;
 
 namespace SPJ_ProyectoMVC.Models
 {
@@ -8,79 +6,26 @@ namespace SPJ_ProyectoMVC.Models
     {
         public int CatalogoId { get; set; }
 
-        [Required]
-        public string? Marca { get; set; }
-        
+        [Required, StringLength(100)]
+        public string Marca { get; set; } = string.Empty;
+
+        [StringLength(100)]
         public string? Modelo { get; set; }
-        
+
         public bool Usado { get; set; }
+
         [Range(5000.00, 50000.00)]
         public decimal Precio { get; set; }
-        public decimal IVA { get; set; }
+
+        [Range(0, 100)]
+        public decimal IVA => Precio * 0.16M; // Ejemplo de cálculo automático
+
+        [StringLength(255)]
         public string? ImagePath { get; set; }
-
     }
 
 
-public static class CatalogoEndpoints
-{
-	public static void MapCatalogoEndpoints (this IEndpointRouteBuilder routes)
-    {
-        var group = routes.MapGroup("/api/Catalogo").WithTags(nameof(Catalogo));
 
-        group.MapGet("/", async (SPJwebAPIContext db) =>
-        {
-            return await db.Catalogo.ToListAsync();
-        })
-        .WithName("GetAllCatalogos")
-        .WithOpenApi();
+}
+    
 
-        group.MapGet("/{id}", async Task<Results<Ok<Catalogo>, NotFound>> (int catalogoid, SPJwebAPIContext db) =>
-        {
-            return await db.Catalogo.AsNoTracking()
-                .FirstOrDefaultAsync(model => model.CatalogoId == catalogoid)
-                is Catalogo model
-                    ? TypedResults.Ok(model)
-                    : TypedResults.NotFound();
-        })
-        .WithName("GetCatalogoById")
-        .WithOpenApi();
-
-        group.MapPut("/{id}", async Task<Results<Ok, NotFound>> (int catalogoid, Catalogo catalogo, SPJwebAPIContext db) =>
-        {
-            var affected = await db.Catalogo
-                .Where(model => model.CatalogoId == catalogoid)
-                .ExecuteUpdateAsync(setters => setters
-                  .SetProperty(m => m.CatalogoId, catalogo.CatalogoId)
-                  .SetProperty(m => m.Marca, catalogo.Marca)
-                  .SetProperty(m => m.Modelo, catalogo.Modelo)
-                  .SetProperty(m => m.Usado, catalogo.Usado)
-                  .SetProperty(m => m.Precio, catalogo.Precio)
-                  .SetProperty(m => m.IVA, catalogo.IVA)
-                  .SetProperty(m => m.ImagePath, catalogo.ImagePath)
-                  );
-            return affected == 1 ? TypedResults.Ok() : TypedResults.NotFound();
-        })
-        .WithName("UpdateCatalogo")
-        .WithOpenApi();
-
-        group.MapPost("/", async (Catalogo catalogo, SPJwebAPIContext db) =>
-        {
-            db.Catalogo.Add(catalogo);
-            await db.SaveChangesAsync();
-            return TypedResults.Created($"/api/Catalogo/{catalogo.CatalogoId}",catalogo);
-        })
-        .WithName("CreateCatalogo")
-        .WithOpenApi();
-
-        group.MapDelete("/{id}", async Task<Results<Ok, NotFound>> (int catalogoid, SPJwebAPIContext db) =>
-        {
-            var affected = await db.Catalogo
-                .Where(model => model.CatalogoId == catalogoid)
-                .ExecuteDeleteAsync();
-            return affected == 1 ? TypedResults.Ok() : TypedResults.NotFound();
-        })
-        .WithName("DeleteCatalogo")
-        .WithOpenApi();
-    }
-}}
